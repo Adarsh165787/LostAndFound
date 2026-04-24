@@ -55,8 +55,18 @@ export default function Dashboard() {
   };
 
   const searchItems = async () => {
-    const res = await API.get(`/items/search?name=${search}`);
-    setItems(res.data);
+    try {
+      if (!search.trim()) {
+        fetchItems();
+        return;
+      }
+
+      const res = await API.get(`/items/search?name=${encodeURIComponent(search)}`);
+      setItems(res.data);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      alert("Search failed");
+    }
   };
 
   return (

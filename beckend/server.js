@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api", authRoutes);
-app.use("/api", itemRoutes);
+app.use("/api/items", itemRoutes);
 
 app.listen(process.env.PORT, () =>
   console.log(`Server running on ${process.env.PORT}`)

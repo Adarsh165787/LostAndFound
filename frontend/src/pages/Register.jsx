@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Register() {
   const [data, setData] = useState({
@@ -11,15 +12,30 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const nav = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleRegister = async () => {
+    if (!data.name || !data.email || !data.password) {
+      setError("Please fill all fields");
+      return;
+    }
+    if (data.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      setError("Please enter a valid email");
+      return;
+    }
     try {
       setLoading(true);
       setError("");
-      await API.post("/register", data);
-      nav("/");
-    } catch {
-      setError("Email already exists");
+      const res = await API.post("/register", data);
+      login(res.data.token, res.data.user);
+      nav("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.msg || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -45,13 +61,16 @@ export default function Register() {
         <input
           placeholder="Name"
           className="w-full border p-3 rounded-md mb-3 focus:ring-2 focus:ring-blue-500"
+          value={data.name}
           onChange={(e) => setData({ ...data, name: e.target.value })}
         />
 
         {/* Email */}
         <input
+          type="email"
           placeholder="Email"
           className="w-full border p-3 rounded-md mb-3 focus:ring-2 focus:ring-blue-500"
+          value={data.email}
           onChange={(e) => setData({ ...data, email: e.target.value })}
         />
 
@@ -60,6 +79,7 @@ export default function Register() {
           type="password"
           placeholder="Password"
           className="w-full border p-3 rounded-md mb-5 focus:ring-2 focus:ring-blue-500"
+          value={data.password}
           onChange={(e) => setData({ ...data, password: e.target.value })}
         />
 

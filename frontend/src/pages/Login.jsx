@@ -1,22 +1,28 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Login() {
   const [data, setData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const nav = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async () => {
+    if (!data.email || !data.password) {
+      setError("Please fill all fields");
+      return;
+    }
     try {
       setLoading(true);
       setError("");
       const res = await API.post("/login", data);
-      localStorage.setItem("token", res.data.token);
+      login(res.data.token, res.data.user);
       nav("/dashboard");
-    } catch {
-      setError("Invalid email or password");
+    } catch (err) {
+      setError(err.response?.data?.msg || "Login failed");
     } finally {
       setLoading(false);
     }
